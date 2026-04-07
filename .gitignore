@@ -22,6 +22,7 @@ run_*/
 */run_*/
 *.log
 proposal/
+stepcoder/
 
 # OS/editor noise
 .DS_Store
