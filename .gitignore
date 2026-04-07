@@ -18,8 +18,6 @@ venv/
 */.ssh_keys/
 
 # Runtime and generated artifacts
-run_*/
-*/run_*/
 *.log
 proposal/
 stepcoder/
