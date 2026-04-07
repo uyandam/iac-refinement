@@ -1,0 +1,34 @@
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.venv/
+*/venv/
+*/.venv/
+
+# Secrets and local key material
+.env
+*.env
+.ssh_keys/
+*/.ssh_keys/
+
+# Runtime and generated artifacts
+run_*/
+*/run_*/
+*.log
+proposal/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Build/distribution artifacts
+build/
+dist/
+*.egg-info/
