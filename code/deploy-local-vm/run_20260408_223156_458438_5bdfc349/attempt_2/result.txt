@@ -1,0 +1,91 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Server] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Update apt cache] ********************************************************
+ok: [localhost]
+
+TASK [Disable and stop unattended-upgrades service] ****************************
+changed: [localhost]
+
+TASK [Wait for any apt locks to be released] ***********************************
+ok: [localhost]
+
+TASK [Install required dependencies] *******************************************
+ok: [localhost]
+
+TASK [Disable swap] ************************************************************
+skipping: [localhost]
+
+TASK [Remove swap entry from /etc/fstab] ***************************************
+ok: [localhost]
+
+TASK [Create keyrings directory] ***********************************************
+ok: [localhost]
+
+TASK [Load required kernel modules config] *************************************
+ok: [localhost]
+
+TASK [Load overlay module] *****************************************************
+ok: [localhost]
+
+TASK [Load br_netfilter module] ************************************************
+ok: [localhost]
+
+TASK [Set sysctl parameters for Kubernetes] ************************************
+ok: [localhost]
+
+TASK [Apply sysctl parameters] *************************************************
+changed: [localhost]
+
+TASK [Install containerd] ******************************************************
+ok: [localhost]
+
+TASK [Create containerd config directory] **************************************
+ok: [localhost]
+
+TASK [Generate default containerd config] **************************************
+ok: [localhost]
+
+TASK [Enable SystemdCgroup in containerd config] *******************************
+ok: [localhost]
+
+TASK [Enable and restart containerd] *******************************************
+changed: [localhost]
+
+TASK [Download Kubernetes apt signing key] *************************************
+ok: [localhost]
+
+TASK [Add Kubernetes apt repository] *******************************************
+ok: [localhost]
+
+TASK [Update apt cache after adding Kubernetes repo] ***************************
+changed: [localhost]
+
+TASK [Wait for any apt locks to be released before installing Kubernetes packages] ***
+ok: [localhost]
+
+TASK [Install kubelet, kubeadm, and kubectl] ***********************************
+changed: [localhost]
+
+TASK [Hold kubelet, kubeadm, and kubectl at current version] *******************
+changed: [localhost] => (item=kubelet)
+changed: [localhost] => (item=kubeadm)
+changed: [localhost] => (item=kubectl)
+
+TASK [Enable and start kubelet] ************************************************
+changed: [localhost]
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=24   changed=7    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+
+
+=== stderr ===
+
+
+=== returncode ===
+0

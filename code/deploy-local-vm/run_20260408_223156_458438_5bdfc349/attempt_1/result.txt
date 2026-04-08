@@ -1,0 +1,74 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Server] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Update apt cache] ********************************************************
+changed: [localhost]
+
+TASK [Install required dependencies] *******************************************
+changed: [localhost]
+
+TASK [Disable swap] ************************************************************
+changed: [localhost]
+
+TASK [Remove swap entry from /etc/fstab] ***************************************
+changed: [localhost]
+
+TASK [Create keyrings directory] ***********************************************
+ok: [localhost]
+
+TASK [Load required kernel modules config] *************************************
+changed: [localhost]
+
+TASK [Load overlay module] *****************************************************
+changed: [localhost]
+
+TASK [Load br_netfilter module] ************************************************
+changed: [localhost]
+
+TASK [Set sysctl parameters for Kubernetes] ************************************
+changed: [localhost]
+
+TASK [Apply sysctl parameters] *************************************************
+changed: [localhost]
+
+TASK [Install containerd] ******************************************************
+changed: [localhost]
+
+TASK [Create containerd config directory] **************************************
+changed: [localhost]
+
+TASK [Generate default containerd config] **************************************
+changed: [localhost]
+
+TASK [Enable SystemdCgroup in containerd config] *******************************
+changed: [localhost]
+
+TASK [Enable and restart containerd] *******************************************
+changed: [localhost]
+
+TASK [Download Kubernetes apt signing key] *************************************
+changed: [localhost]
+
+TASK [Add Kubernetes apt repository] *******************************************
+changed: [localhost]
+
+TASK [Update apt cache after adding Kubernetes repo] ***************************
+changed: [localhost]
+
+TASK [Install kubelet, kubeadm, and kubectl] ***********************************
+fatal: [localhost]: FAILED! => {"cache_update_time": 1775680365, "cache_updated": false, "changed": false, "msg": "'/usr/bin/apt-get -y -o \"Dpkg::Options::=--force-confdef\" -o \"Dpkg::Options::=--force-confold\"       install 'kubelet=1.29.15-1.1' 'kubeadm=1.29.15-1.1' 'kubectl=1.29.15-1.1'' failed: E: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 3047 (unattended-upgr)\nE: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), is another process using it?\n", "rc": 100, "stderr": "E: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 3047 (unattended-upgr)\nE: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), is another process using it?\n", "stderr_lines": ["E: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 3047 (unattended-upgr)", "E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), is another process using it?"], "stdout": "", "stdout_lines": []}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=19   changed=17   unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+
+
+
+=== stderr ===
+
+
+=== returncode ===
+2

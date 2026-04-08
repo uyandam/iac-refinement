@@ -46,12 +46,15 @@ try:
     subprocess.run(
         [
             "scp",
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "ConnectTimeout=10",
             "-i",
             ".ssh_keys/masters_id",
             file_name,
             "masters@192.168.122.48:~/",
         ],
         check=True,
+        timeout=30,
     )
     
     print(f"Copied {file_name} to masters@192.168.122.48")
@@ -72,19 +75,33 @@ try:
         attempt_dir = os.path.join(run_dir, f"attempt_{attempt}")
         os.makedirs(attempt_dir, exist_ok=True)
 
-        # Execute the playbook on the target VM.
-        result = subprocess.run(
+        # Execute the playbook on the target VM (stream output live).
+        proc = subprocess.Popen(
             [
                 "ssh",
+                "-o", "StrictHostKeyChecking=no",
+                "-o", "ConnectTimeout=10",
                 "-i",
                 ".ssh_keys/masters_id",
                 "masters@192.168.122.48",
                 f"ansible-playbook -i localhost, -c local ~/{file_name}",
             ],
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
         )
-        execution_output = result.stdout
+        execution_output = ""
+        for line in proc.stdout:
+            print(line, end="", flush=True)
+            execution_output += line
+        proc.wait()
+
+        class _Result:
+            returncode = proc.returncode
+            stdout = execution_output
+            stderr = ""
+
+        result = _Result()
         no_hosts_matched = "no hosts matched" in execution_output.lower()
 
         # Truncate stdout to the last 50 lines to avoid sending verbose task logs.
@@ -108,7 +125,7 @@ try:
 
         # Feed execution output back to the model for fine-tuning.
         # Prefer stderr when available (it contains the actual error); fall back to stdout tail.
-        error_context = result.stderr.strip() if result.stderr.strip() else stdout_tail
+        error_context = stdout_tail
         followup_message = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=2048,
@@ -139,12 +156,15 @@ try:
             subprocess.run(
                 [
                     "scp",
+                    "-o", "StrictHostKeyChecking=no",
+                    "-o", "ConnectTimeout=10",
                     "-i",
                     ".ssh_keys/masters_id",
                     file_name,
                     "masters@192.168.122.48:~/",
                 ],
                 check=True,
+                timeout=30,
             )
         else:
             print("No changes suggested by the model. Stopping loop.")

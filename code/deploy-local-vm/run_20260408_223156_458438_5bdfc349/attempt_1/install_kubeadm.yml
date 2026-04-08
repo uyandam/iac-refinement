@@ -12,19 +12,6 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Disable and stop unattended-upgrades service
-      systemd:
-        name: unattended-upgrades
-        state: stopped
-        enabled: no
-
-    - name: Wait for any apt locks to be released
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
-
     - name: Install required dependencies
       apt:
         name:
@@ -129,13 +116,6 @@
       apt:
         update_cache: yes
 
-    - name: Wait for any apt locks to be released before installing Kubernetes packages
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
-
     - name: Install kubelet, kubeadm, and kubectl
       apt:
         name:
@@ -156,5 +136,3 @@
     - name: Enable and start kubelet
       systemd:
         name: kubelet
-        state: started
-        enabled: yes

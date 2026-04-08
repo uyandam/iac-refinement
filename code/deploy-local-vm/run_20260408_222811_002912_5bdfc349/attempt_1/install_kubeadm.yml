@@ -9,21 +9,8 @@
   tasks:
     - name: Update apt cache
       apt:
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 3600
-
-    - name: Disable and stop unattended-upgrades service
-      systemd:
-        name: unattended-upgrades
-        state: stopped
-        enabled: no
-
-    - name: Wait for any apt locks to be released
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
 
     - name: Install required dependencies
       apt:
@@ -31,23 +18,21 @@
           - apt-transport-https
           - ca-certificates
           - curl
-          - gpg
-          - socat
-          - conntrack
-          - ipset
+          - gnupg
+          - software-properties-common
         state: present
 
-    - name: Disable swap
+    - name: Disable swap immediately
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
 
-    - name: Remove swap entry from /etc/fstab
+    - name: Disable swap permanently in /etc/fstab
       replace:
         path: /etc/fstab
         regexp: '^([^#].*\s+swap\s+.*)$'
         replace: '# \1'
 
-    - name: Create keyrings directory
+    - name: Create /etc/apt/keyrings directory
       file:
         path: /etc/apt/keyrings
         state: directory
@@ -81,9 +66,10 @@
     - name: Apply sysctl parameters
       command: sysctl --system
 
-    - name: Install containerd
+    - name: Install containerd prerequisites
       apt:
-        name: containerd
+        name:
+          - containerd
         state: present
 
     - name: Create containerd config directory
@@ -97,18 +83,17 @@
       args:
         creates: /etc/containerd/config.toml
 
-    - name: Enable SystemdCgroup in containerd config
+    - name: Set SystemdCgroup to true in containerd config
       replace:
         path: /etc/containerd/config.toml
         regexp: 'SystemdCgroup = false'
         replace: 'SystemdCgroup = true'
 
-    - name: Enable and restart containerd
+    - name: Enable and start containerd
       systemd:
         name: containerd
+        enabled: true
         state: restarted
-        enabled: yes
-        daemon_reload: yes
 
     - name: Download Kubernetes apt signing key
       shell: >
@@ -127,16 +112,9 @@
 
     - name: Update apt cache after adding Kubernetes repo
       apt:
-        update_cache: yes
+        update_cache: true
 
-    - name: Wait for any apt locks to be released before installing Kubernetes packages
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
-
-    - name: Install kubelet, kubeadm, and kubectl
+    - name: Install kubeadm, kubelet, and kubectl
       apt:
         name:
           - kubelet
@@ -144,7 +122,7 @@
           - kubectl
         state: present
 
-    - name: Hold kubelet, kubeadm, and kubectl at current version
+    - name: Hold kubeadm, kubelet, and kubectl at current version
       dpkg_selections:
         name: "{{ item }}"
         selection: hold
@@ -156,5 +134,3 @@
     - name: Enable and start kubelet
       systemd:
         name: kubelet
-        state: started
-        enabled: yes
