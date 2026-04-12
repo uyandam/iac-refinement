@@ -1,0 +1,88 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Server] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Install ntpdate] *********************************************************
+changed: [localhost]
+
+TASK [Sync system time] ********************************************************
+ok: [localhost]
+
+TASK [Update apt cache with check valid until disabled] ************************
+ok: [localhost]
+
+TASK [Install required dependencies] *******************************************
+changed: [localhost]
+
+TASK [Disable swap] ************************************************************
+ok: [localhost]
+
+TASK [Remove swap entry from fstab] ********************************************
+changed: [localhost]
+
+TASK [Load required kernel modules] ********************************************
+changed: [localhost] => (item=overlay)
+changed: [localhost] => (item=br_netfilter)
+
+TASK [Ensure kernel modules are loaded on boot] ********************************
+changed: [localhost]
+
+TASK [Set required sysctl parameters] ******************************************
+changed: [localhost] => (item={'name': 'net.bridge.bridge-nf-call-iptables', 'value': '1'})
+changed: [localhost] => (item={'name': 'net.bridge.bridge-nf-call-ip6tables', 'value': '1'})
+changed: [localhost] => (item={'name': 'net.ipv4.ip_forward', 'value': '1'})
+
+TASK [Create keyrings directory] ***********************************************
+ok: [localhost]
+
+TASK [Download containerd GPG key] *********************************************
+changed: [localhost]
+
+TASK [Add containerd apt repository] *******************************************
+changed: [localhost]
+
+TASK [Install containerd] ******************************************************
+changed: [localhost]
+
+TASK [Create containerd config directory] **************************************
+ok: [localhost]
+
+TASK [Generate default containerd configuration] *******************************
+ok: [localhost]
+
+TASK [Enable SystemdCgroup in containerd config] *******************************
+ok: [localhost]
+
+TASK [Enable and restart containerd] *******************************************
+changed: [localhost]
+
+TASK [Download Kubernetes GPG key] *********************************************
+changed: [localhost]
+
+TASK [Add Kubernetes apt repository] *******************************************
+changed: [localhost]
+
+TASK [Install kubeadm, kubelet, and kubectl] ***********************************
+changed: [localhost]
+
+TASK [Hold kubeadm, kubelet, and kubectl at current version] *******************
+changed: [localhost] => (item=kubelet)
+changed: [localhost] => (item=kubeadm)
+changed: [localhost] => (item=kubectl)
+
+TASK [Enable and start kubelet] ************************************************
+changed: [localhost]
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=23   changed=15   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+
+=== stderr ===
+
+
+=== returncode ===
+0

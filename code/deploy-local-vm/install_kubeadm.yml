@@ -1,140 +1,52 @@
 ---
-- name: Install kubeadm on Ubuntu Server
-  hosts: all
+- name: Install kubeadm on Ubuntu 24.04
+  hosts: localhost
+  connection: local
   become: true
+
   vars:
-    kubernetes_version: "1.29"
-    kubernetes_apt_keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    k8s_version: "1.32"
+    k8s_apt_keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    k8s_apt_repo: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/"
 
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
 
-    - name: Disable and stop unattended-upgrades service
-      systemd:
-        name: unattended-upgrades
-        state: stopped
-        enabled: no
+    - name: Disable apt valid-until check to fix clock-skew issue
+      copy:
+        dest: /etc/apt/apt.conf.d/99no-check-valid-until
+        content: |
+          Acquire::Check-Valid-Until "false";
+          Acquire::Check-Date "false";
+        mode: "0644"
 
-    - name: Wait for any apt locks to be released
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
-
-    - name: Install required dependencies
+    - name: Install prerequisite packages
       apt:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
-          - gpg
-          - socat
-          - conntrack
-          - ipset
+          - gnupg
         state: present
+        update_cache: true
 
-    - name: Disable swap
-      command: swapoff -a
-      when: ansible_swaptotal_mb > 0
-
-    - name: Remove swap entry from /etc/fstab
-      replace:
-        path: /etc/fstab
-        regexp: '^([^#].*\s+swap\s+.*)$'
-        replace: '# \1'
-
-    - name: Create keyrings directory
+    - name: Ensure /etc/apt/keyrings directory exists
       file:
         path: /etc/apt/keyrings
         state: directory
-        mode: '0755'
+        mode: "0755"
 
-    - name: Load required kernel modules config
-      copy:
-        dest: /etc/modules-load.d/k8s.conf
-        content: |
-          overlay
-          br_netfilter
-
-    - name: Load overlay module
-      modprobe:
-        name: overlay
-        state: present
-
-    - name: Load br_netfilter module
-      modprobe:
-        name: br_netfilter
-        state: present
-
-    - name: Set sysctl parameters for Kubernetes
-      copy:
-        dest: /etc/sysctl.d/k8s.conf
-        content: |
-          net.bridge.bridge-nf-call-iptables  = 1
-          net.bridge.bridge-nf-call-ip6tables = 1
-          net.ipv4.ip_forward                 = 1
-
-    - name: Apply sysctl parameters
-      command: sysctl --system
-
-    - name: Install containerd
-      apt:
-        name: containerd
-        state: present
-
-    - name: Create containerd config directory
-      file:
-        path: /etc/containerd
-        state: directory
-        mode: '0755'
-
-    - name: Generate default containerd config
-      shell: containerd config default > /etc/containerd/config.toml
+    - name: Download Kubernetes apt GPG key
+      shell: |
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key \
+          | gpg --dearmor -o {{ k8s_apt_keyring }}
       args:
-        creates: /etc/containerd/config.toml
-
-    - name: Enable SystemdCgroup in containerd config
-      replace:
-        path: /etc/containerd/config.toml
-        regexp: 'SystemdCgroup = false'
-        replace: 'SystemdCgroup = true'
-
-    - name: Enable and restart containerd
-      systemd:
-        name: containerd
-        state: restarted
-        enabled: yes
-        daemon_reload: yes
-
-    - name: Download Kubernetes apt signing key
-      shell: >
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key |
-        gpg --dearmor -o {{ kubernetes_apt_keyring }}
-      args:
-        creates: "{{ kubernetes_apt_keyring }}"
+        creates: "{{ k8s_apt_keyring }}"
 
     - name: Add Kubernetes apt repository
       apt_repository:
-        repo: >-
-          deb [signed-by={{ kubernetes_apt_keyring }}]
-          https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /
-        state: present
+        repo: "deb [signed-by={{ k8s_apt_keyring }}] {{ k8s_apt_repo }} /"
         filename: kubernetes
-
-    - name: Update apt cache after adding Kubernetes repo
-      apt:
-        update_cache: yes
-
-    - name: Wait for any apt locks to be released before installing Kubernetes packages
-      shell: |
-        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-          sleep 2
-        done
-      changed_when: false
+        state: present
 
     - name: Install kubelet, kubeadm, and kubectl
       apt:
@@ -143,6 +55,7 @@
           - kubeadm
           - kubectl
         state: present
+        update_cache: true
 
     - name: Hold kubelet, kubeadm, and kubectl at current version
       dpkg_selections:
@@ -153,8 +66,11 @@
         - kubeadm
         - kubectl
 
-    - name: Enable and start kubelet
-      systemd:
-        name: kubelet
-        state: started
-        enabled: yes
+    - name: Verify kubeadm installation
+      command: kubeadm version
+      register: kubeadm_ver
+      changed_when: false
+
+    - name: Show kubeadm version
+      debug:
+        msg: "{{ kubeadm_ver.stdout }}"

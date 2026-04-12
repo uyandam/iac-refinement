@@ -1,0 +1,22 @@
+=== stdout ===
+ERROR! We were unable to read either as JSON nor YAML, these are the errors we got from each:
+JSON: Expecting value: line 1 column 1 (char 0)
+
+Syntax Error while loading YAML.
+  could not find expected ':'
+
+The error appears to be in '/home/masters/install_kubeadm.yml': line 120, column 1, but may
+be elsewhere in the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+        state: present
+        filename
+^ here
+
+
+=== stderr ===
+
+
+=== returncode ===
+4

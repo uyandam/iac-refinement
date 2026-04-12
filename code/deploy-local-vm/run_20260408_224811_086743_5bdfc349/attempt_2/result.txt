@@ -1,0 +1,20 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Server] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Update apt cache] ********************************************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to update apt cache: E:Release file for http://security.ubuntu.com/ubuntu/dists/noble-security/InRelease is not valid yet (invalid for another 20h 34min 49s). Updates for this repository will not be applied., E:Release file for http://za.archive.ubuntu.com/ubuntu/dists/noble-updates/InRelease is not valid yet (invalid for another 18h 33min 23s). Updates for this repository will not be applied., E:Release file for http://za.archive.ubuntu.com/ubuntu/dists/noble-backports/InRelease is not valid yet (invalid for another 18h 36min 39s). Updates for this repository will not be applied."}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+
+
+
+=== stderr ===
+
+
+=== returncode ===
+2

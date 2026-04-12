@@ -1,0 +1,1 @@
+Write an Ansible playbook to install kubeadm on a fresh Ubuntu Server. Output ONLY raw yaml. Do not use markdown code fences or backticks.
