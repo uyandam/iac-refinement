@@ -1,0 +1,26 @@
+---
+- name: Install kubeadm on Ubuntu Focal
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Add Kubernetes repository key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Create /etc/apt/sources.list.d/kubernetes.list
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        line: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        create: yes
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install kubeadm
+      ansible.builtin.apt:
+        name: kubeadm
+        state: present

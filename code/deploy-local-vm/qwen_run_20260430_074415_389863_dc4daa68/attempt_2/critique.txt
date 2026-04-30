@@ -1,0 +1,28 @@
+The root cause of the failure is the `Add Kubernetes repository to sources.list.d` task. 
+
+**Error:**
+
+The task fails with the following error: 
+
+`"Destination /etc/apt/sources.list.d/kubernetes.list does not exist !"`
+
+This indicates that the Ansible playbook attempts to modify a file `/etc/apt/sources.list.d/kubernetes.list` which doesn't exist on the target system before attempting to add the line `deb https://apt.kubernetes.io/ kubernetes-xenial main`.
+
+
+**Fix:**
+
+Before adding the repository information, the playbook needs to create the `kubernetes.list` file. This can be achieved by adding a `file` module task before the `lineinfile` task:
+
+```yaml
+- name: Create kubernetes.list file
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: touch 
+
+
+# Rest of the playbook tasks ...
+```
+
+
+
+This ensures that the target file exists before attempting to modify it, preventing the error and allowing the playbook to proceed successfully.

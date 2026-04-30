@@ -1,0 +1,22 @@
+---
+- name: Install kubeadm on Ubuntu Focal
+  hosts: focal_servers
+  tasks:
+    - name: Add Kubernetes repository key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+    - name: Create Kubernetes APT source list file
+      lineinfile:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        line: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        create: yes
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install kubeadm
+      apt:
+        name: kubelet,kubeadm,kubectl
+        state: present

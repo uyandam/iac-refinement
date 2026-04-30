@@ -1,0 +1,23 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Focal] *****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Update apt cache] ********************************************************
+changed: [localhost]
+
+TASK [Add Kubernetes repository signing key] ***********************************
+changed: [localhost]
+
+TASK [Add Kubernetes repository to sources.list.d] *****************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Destination /etc/apt/sources.list.d/kubernetes.list does not exist !", "rc": 257}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=3    changed=2    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+
+
+
+=== returncode ===
+2

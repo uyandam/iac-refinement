@@ -1,0 +1,12 @@
+=== stdout ===
+[WARNING]: Could not match supplied host pattern, ignoring: focal_servers
+
+PLAY [Install kubeadm on Ubuntu Focal] *****************************************
+skipping: no hosts matched
+
+PLAY RECAP *********************************************************************
+
+
+
+=== returncode ===
+0

@@ -1,0 +1,26 @@
+=== stdout ===
+
+PLAY [Install kubeadm on Ubuntu Focal] *****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Add Kubernetes repository key] *******************************************
+ok: [localhost]
+
+TASK [Create /etc/apt/sources.list.d/kubernetes.list] **************************
+changed: [localhost]
+
+TASK [Update apt cache] ********************************************************
+ok: [localhost]
+
+TASK [Install kubeadm] *********************************************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "No package matching 'kubeadm' is available"}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=4    changed=1    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+
+
+
+=== returncode ===
+2

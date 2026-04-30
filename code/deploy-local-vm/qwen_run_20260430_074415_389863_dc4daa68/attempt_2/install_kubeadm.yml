@@ -1,0 +1,31 @@
+---
+- name: Install kubeadm on Ubuntu Focal
+  hosts: all
+  become: yes
+  vars:
+    ansible_distribution_release: "{{ ansible_distribution_release | default('focal') }}"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Add Kubernetes repository signing key
+      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+    - name: Add Kubernetes repository to sources.list.d
+      lineinfile:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        line: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+
+    - name: Update apt cache after adding Kubernetes repository
+      apt:
+        update_cache: yes
+
+    - name: Install kubeadm, kubelet and kubectl
+      apt:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: present

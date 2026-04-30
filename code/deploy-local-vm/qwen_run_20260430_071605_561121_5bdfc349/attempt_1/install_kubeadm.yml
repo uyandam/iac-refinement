@@ -1,0 +1,101 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache and upgrade existing packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install prerequisites for Docker
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Set up the stable repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable
+        state: present
+
+    - name: Install Docker CE
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add current user to the docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install kubeadm, kubelet and kubectl
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - kubeadm
+        - kubelet
+        - kubectl
+
+    - name: Hold the installed versions of kubeadm, kubelet and kubectl for upgrades
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: absent
+        update_cache: yes
+
+    - name: Ensure Docker daemon is not blocked by systemd cgroup driver changes
+      lineinfile:
+        path: /etc/systemd/system/docker.service.d/override.conf
+        regexp: '^ExecStart='
+        line: 'ExecStart=/usr/bin/dockerd --exec-opts native.cgroupdriver=systemd'
+        state: present
+
+    - name: Reload systemd and restart Docker service
+      service:
+        name: docker
+        state: restarted
+
+    - name: Initialize kubeadm
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
+      register: kubeadm_init_output
+      changed_when: false
+
+    - name: Set up kubeconfig for the current user
+      copy:
+        content: "{{ kubeadm_init_output.stdout }}"
+        dest: ~/.kube/config
+        mode: '0444'
+
+    - name: Install Flannel network plugin
+      command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+    - name: Check if the master node is ready
+      command: kubectl get nodes --no-headers | awk '$2 == "Ready"'
+      register: node_status
+      failed_when: "'Ready' not in node_status.stdout"
+
+  handlers:
+    - name: Restart Docker service
+      service:
+        name: docker
+        state: restarted
+
+  vars_files:
+    - vars.yml

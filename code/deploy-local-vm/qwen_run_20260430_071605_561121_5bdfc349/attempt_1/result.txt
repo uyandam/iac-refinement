@@ -1,0 +1,32 @@
+=== stdout ===
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Update apt cache and upgrade existing packages] **************************
+changed: [localhost]
+
+TASK [Install prerequisites for Docker] ****************************************
+changed: [localhost] => (item=apt-transport-https)
+ok: [localhost] => (item=ca-certificates)
+ok: [localhost] => (item=curl)
+ok: [localhost] => (item=software-properties-common)
+
+TASK [Add Docker’s official GPG key] *******************************************
+changed: [localhost]
+
+TASK [Set up the stable repository] ********************************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to update apt cache: W:Updating from such a repository can't be done securely, and is therefore disabled by default., W:See apt-secure(8) manpage for repository creation and user configuration details., E:The repository 'https://download.docker.com/linux/ubuntu $(lsb_release Release' does not have a Release file."}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=4    changed=3    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+
+
+
+=== stderr ===
+
+
+=== returncode ===
+2

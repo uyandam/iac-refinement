@@ -1,0 +1,45 @@
+---
+- name: Install kubeadm on Ubuntu Server
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt cache and install packages
+      apt:
+        update_cache: yes
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+      notify:
+        - Add Kubernetes repository GPG key
+
+    - name: Add Kubernetes repository GPG key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add Kubernetes repository to sources.list.d
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+      when: ansible_distribution_release == 'focal'
+
+    - name: Install kubeadm, kubelet and kubectl
+      apt:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: latest
+
+  handlers:
+    - name: Ensure Kubernetes packages are held at the current version
+      apt:
+        name: "{{ item }}"
+        state: held
+      loop:
+        - kubeadm
+        - kubelet
+        - kubectl

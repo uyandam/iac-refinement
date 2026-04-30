@@ -1,0 +1,166 @@
+---
+- name: Install Kubeadm on Ubuntu Server
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache and upgrade existing packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+        key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+    - name: Install kubeadm, kubelet and kubectl
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - kubeadm
+        - kubelet
+        - kubectl
+
+    - name: Hold kubelet at current version to prevent upgrades
+      apt:
+        name: kubelet
+        state: held-at-version
+
+    - name: Ensure that AppArmor is enabled and running
+      service:
+        name: apparmor
+        state: started
+        enabled: yes
+
+    - name: Enable kernel modules for Kubernetes networking
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - br_netfilter
+        - ip_vs
+        - nf_conntrack_ipv4
+
+    - name: Set required sysctl parameters
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: net.bridge.bridge-nf-call-ip6tables, value: 1 }
+        - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+
+    - name: Disable swap partition (if applicable)
+      command: swapoff -a
+      ignore_errors: yes
+
+    - name: Ensure swap partition is not enabled on boot
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^/swap'
+        state: absent
+
+    - name: Initialize Kubernetes master with kubeadm
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
+      register: kubeadm_init_output
+
+    - name: Print kubeadm join command
+      debug:
+        msg: "{{ kubeadm_init_output.stdout_lines | select('match', '^kubeadm join') | first }}"
+
+    - name: Configure kubectl for the current user
+      shell: "{{ item }}"
+      loop:
+        - mkdir -p $HOME/.kube
+        - sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        - sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    - name: Deploy network plugin (e.g., Flannel)
+      kubernetes.core.kubectl:
+        state: present
+        apply:
+          apiVersion: apps/v1
+          kind: DaemonSet
+          metadata:
+            name: kube-flannel-ds
+            namespace: kube-system
+            labels:
+              app: flannel
+          spec:
+            selector:
+              matchLabels:
+                app: flannel
+            template:
+              metadata:
+                labels:
+                  app: flannel
+              spec:
+                containers:
+                - name: kube-flannel
+                  image: quay.io/coreos/flannel:v0.14.0-amd64
+                  command:
+                    - /opt/bin/kube-flannel --kubeconfig=/etc/kubernetes/admin.conf
+                  securityContext:
+                    privileged: true
+                  volumeMounts:
+                  - name: cni-config
+                    mountPath: /etc/cni/net.d
+                  - name: flannel-certs
+                    mountPath: /run/flannel/certificates
+                volumes:
+                - name: cni-config
+                  configMap:
+                    name: kube-flannel-cfg
+                - name: flannel-certs
+                  secret:
+                    secretName: kube-flannel-certs
+
+    - name: Ensure Flannel configmap exists
+      kubernetes.core.kubectl:
+        state: present
+        apply:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: kube-flannel-cfg
+            namespace: kube-system
+          data:
+            cni-conf.json: |
+              {
+                "name": "cbr0",
+                "cniVersion": "0.3.1",
+                "plugins": [
+                  {
+                    "type": "flannel",
+                    "delegate": {
+                      "hairpinMode": true,
+                      "isDefaultGateway": true
+                    }
+                  },
+                  {
+                    "type": "portmap",
+                    "capabilities": {"portMappings": true}
+                  }
+                ]
+              }
+
+    - name: Ensure Flannel certificates secret exists
+      kubernetes.core.kubectl:
+        state: present
+        apply:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: kube-flannel-certs
+            namespace: kube-system
+          type: Opaque
+          data:
+            ca.crt: <base64-encoded-ca-crt>
+            ca.key: <base64-encoded-ca-key>
+            cert.crt: <base64-encoded-cert-crt>
+            cert.key: <base64-encoded-cert-key>

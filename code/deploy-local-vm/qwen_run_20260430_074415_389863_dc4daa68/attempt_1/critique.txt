@@ -1,0 +1,18 @@
+The root cause of the failure is in the **"Install kubeadm, kubelet and kubectl"** task. 
+
+**Error:** "No package matching 'kubeadm' is available" indicates that Ansible cannot find the `kubeadm` package in the available repositories on the target system (localhost).
+
+**Fix:**  The issue likely stems from either:
+
+1. **Incorrect repository selection:** The playbook uses a specific repository (`deb https://apt.kubernetes.io/ kubernetes-xenial main`) but the Ubuntu version (`focal`) might not be supported by this repository. Ansible skips the repository addition for `focal` systems, meaning the system may not have access to the kubeadm package.
+
+2. **Outdated apt cache:**  While the playbook updates the apt cache, there's a possibility it's outdated, and the new package list doesn't reflect the availability of `kubeadm`.
+
+
+**Solution:** 
+
+* Verify that the correct Kubernetes repository is being used for the `focal` Ubuntu version. You might need to update the `apt_repository` task with the appropriate repository URL for `focal`.
+*  Ensure that the apt cache is up-to-date before attempting to install `kubeadm`. You can add a second `apt: update_cache: yes` line after the `apt_repository` task or force an update within the `apt` task installing kubeadm. 
+
+
+By addressing these possibilities, you should be able to resolve the package availability issue and successfully install kubeadm.

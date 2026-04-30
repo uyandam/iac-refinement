@@ -1,0 +1,20 @@
+The playbook fails because it attempts to use a Kubernetes module called `kubernetes.core.kubectl` which doesn't exist within Ansible's default collections.
+
+**Failing Task:**  - name: Deploy network plugin (e.g., Flannel)
+
+**Exact Error:** ERROR! couldn't resolve module/action 'kubernetes.core.kubectl'. This often indicates a misspelling, missing collection, or incorrect module path.
+
+**Root Cause:** The playbook is trying to use a custom module that hasn't been installed or configured correctly. 
+
+
+**Correct Fix:**  Ansible doesn't have a built-in `kubernetes.core.kubectl` module. You likely need to install the official Ansible Kubernetes collection:
+
+   ```bash
+   ansible-galaxy collection install kubernetes.core
+   ```
+
+After installing the collection, remove the comment from the playbook line and it should work as intended. 
+
+
+
+Let me know if you have any other questions about this or other Ansible challenges!

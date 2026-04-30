@@ -1,0 +1,6 @@
+Write an Ansible playbook to install kubeadm on a fresh Ubuntu Server running focal. Use ansible_distribution_release for any apt repository entries — do NOT use shell substitutions like $(lsb_release -cs).  Output ONLY raw yaml. Do not use markdown code fences or backticks. 
+
+Make sure the playbook includes the following:
+* The correct Kubernetes repository for Ubuntu `focal`.
+* A task to create the `/etc/apt/sources.list.d/kubernetes.list` file before adding the repository information.
+* A force update of the apt cache before attempting to install kubeadm.

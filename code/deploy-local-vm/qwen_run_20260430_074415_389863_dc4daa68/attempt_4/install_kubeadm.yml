@@ -1,0 +1,20 @@
+---
+- hosts: focal_servers
+  become: yes
+  tasks:
+    - name: Ensure Kubernetes repository is enabled for Ubuntu focal
+      copy:
+        content: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        dest: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Add Kubernetes signing key
+      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install kubeadm
+      apt:
+        name: kubeadm
+        state: present
